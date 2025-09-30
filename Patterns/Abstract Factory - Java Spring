@@ -1,0 +1,251 @@
+# 🧪 **Abstract Factory Pattern in Java con Spring Boot**
+
+## 🎯 Scenario
+
+Vogliamo gestire **due ambienti** (`dev` e `prod`) e, in base al profilo attivo di Spring, fornire automaticamente la **famiglia di oggetti corretta** (`Logger` + `Formatter`).
+
+---
+
+## 🧱 1. **Interfacce astratte**
+
+```java
+public interface Logger {
+    void log(String message);
+}
+
+public interface Formatter {
+    String format(String message);
+}
+```
+
+---
+
+## 🧩 2. **Implementazioni Development**
+
+```java
+import org.springframework.stereotype.Component;
+
+public class DevLogger implements Logger {
+    private final Formatter formatter;
+
+    public DevLogger(Formatter formatter) {
+        this.formatter = formatter;
+    }
+
+    @Override
+    public void log(String message) {
+        System.out.println("DEV: " + formatter.format(message));
+    }
+}
+
+public class SimpleFormatter implements Formatter {
+    @Override
+    public String format(String message) {
+        return ">>> " + message;
+    }
+}
+```
+
+---
+
+## 🧩 3. **Implementazioni Production**
+
+```java
+import java.time.Instant;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+public class ProdLogger implements Logger {
+    private final Formatter formatter;
+
+    public ProdLogger(Formatter formatter) {
+        this.formatter = formatter;
+    }
+
+    @Override
+    public void log(String message) {
+        System.out.println("PROD LOG SENT: " + formatter.format(message));
+    }
+}
+
+public class JsonFormatter implements Formatter {
+    private final ObjectMapper mapper = new ObjectMapper();
+
+    @Override
+    public String format(String message) {
+        try {
+            return mapper.writeValueAsString(
+                new LogMessage(message, Instant.now().toString())
+            );
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static class LogMessage {
+        public String message;
+        public String timestamp;
+
+        public LogMessage(String message, String timestamp) {
+            this.message = message;
+            this.timestamp = timestamp;
+        }
+    }
+}
+```
+
+---
+
+## 🏗️ 4. **Abstract Factory**
+
+```java
+public interface LoggingFactory {
+    Logger createLogger();
+    Formatter createFormatter();
+}
+```
+
+---
+
+## 🏭 5. **Concrete Factories**
+
+```java
+public class DevLoggingFactory implements LoggingFactory {
+    @Override
+    public Formatter createFormatter() {
+        return new SimpleFormatter();
+    }
+
+    @Override
+    public Logger createLogger() {
+        return new DevLogger(createFormatter());
+    }
+}
+
+public class ProdLoggingFactory implements LoggingFactory {
+    @Override
+    public Formatter createFormatter() {
+        return new JsonFormatter();
+    }
+
+    @Override
+    public Logger createLogger() {
+        return new ProdLogger(createFormatter());
+    }
+}
+```
+
+---
+
+## ⚙️ 6. **Configurazione Spring (useFactory equivalente)**
+
+```java
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
+
+@Configuration
+public class LoggerConfig {
+
+    @Value("${app.env:dev}") // legge da application.properties, default "dev"
+    private String env;
+
+    @Bean
+    public LoggingFactory loggingFactory() {
+        switch (env) {
+            case "prod":
+                return new ProdLoggingFactory();
+            case "dev":
+            default:
+                return new DevLoggingFactory();
+        }
+    }
+
+    @Bean
+    public Logger logger(LoggingFactory factory) {
+        return factory.createLogger();
+    }
+}
+```
+
+---
+
+## 🧪 7. **Uso in un servizio Spring**
+
+```java
+import org.springframework.stereotype.Service;
+
+@Service
+public class LogService {
+
+    private final Logger logger;
+
+    public LogService(Logger logger) {
+        this.logger = logger;
+    }
+
+    public void doSomething() {
+        logger.log("Messaggio dal servizio Spring con Abstract Factory");
+    }
+}
+```
+
+---
+
+## 🚀 8. **Main Application**
+
+```java
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.CommandLineRunner;
+
+@SpringBootApplication
+public class App implements CommandLineRunner {
+
+    private final LogService logService;
+
+    public App(LogService logService) {
+        this.logService = logService;
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(App.class, args);
+    }
+
+    @Override
+    public void run(String... args) {
+        logService.doSomething();
+    }
+}
+```
+
+---
+
+## ⚙️ 9. **Configurazione degli ambienti**
+
+👉 `src/main/resources/application.properties` (default **dev**)
+
+```properties
+app.env=dev
+```
+
+👉 `src/main/resources/application-prod.properties` (profilo **prod**)
+
+```properties
+app.env=prod
+```
+
+Esegui con:
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=prod
+```
+
+---
+
+## ✅ Vantaggi
+
+* 🔄 Inietti automaticamente la famiglia corretta in base al profilo Spring
+* ♻️ Puoi estendere facilmente con altre famiglie (`test`, `staging`, ecc.)
+* 🧪 Completamente testabile e mockabile
+
+---
