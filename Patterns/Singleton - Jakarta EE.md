@@ -124,16 +124,3 @@ public class LogServlet extends HttpServlet {
     }
 }
 ```
-
----
-
-## ✅ Confronto
-
-| Angular (`useFactory`) | Jakarta EE (CDI `@Produces`)   |
-| ---------------------- | ------------------------------ |
-| `InjectionToken`       | `@Named`                       |
-| `useFactory`           | `@Produces` method             |
-| `providers`            | CDI `@ApplicationScoped` bean  |
-| `@Inject(Logger)`      | `@Inject @Named("...") Logger` |
-
----
