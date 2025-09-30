@@ -249,3 +249,19 @@ mvn spring-boot:run -Dspring-boot.run.profiles=prod
 * 🧪 Completamente testabile e mockabile
 
 ---
+
+Perfetto, ecco il confronto semplificato per l’**Abstract Factory Pattern** nello stesso stile del Singleton:
+
+---
+
+## ✅ Confronto Jakarta EE vs Spring Boot
+
+| Feature                   | Jakarta EE (CDI)     | Spring Boot                          |
+| ------------------------- | -------------------- | ------------------------------------ |
+| Abstract Factory dinamica | `@Produces`          | `@Bean` method                       |
+| Configurazione runtime    | `@Named` + proprietà | `@Value` + `application.properties`  |
+| Iniezione                 | `@Inject`            | constructor injection (`@Autowired`) |
+| Scope                     | `@ApplicationScoped` | singleton di default (`@Bean`)       |
+
+---
+
