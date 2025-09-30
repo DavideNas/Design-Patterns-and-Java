@@ -1,7 +1,3 @@
-Perfetto 👍 Ti preparo la **trasposizione del Singleton Pattern in Java**, con lo stesso scenario che hai mostrato in Angular (un contatore globale delle richieste API).
-
----
-
 # 🔒 **Singleton Pattern in Java**
 
 ## ✅ Definizione
