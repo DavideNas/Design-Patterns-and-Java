@@ -122,5 +122,3 @@ public class LogServlet extends HttpServlet {
 
 Con questa configurazione, **il logger viene scelto dinamicamente al runtime** senza che il client debba conoscere la sua implementazione concreta.
 
-Se vuoi, posso anche fare la **variante usando `@Qualifier` invece di `@Named`**, così è più “type-safe” e professionale in CDI. Vuoi che lo faccia?
-
